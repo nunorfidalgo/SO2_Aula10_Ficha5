@@ -66,7 +66,7 @@ int _tmain(int argc, LPTSTR argv[]) {
 		hEvent[i] = CreateEvent(NULL, TRUE, FALSE, NULL);
 
 		hPipes[i].hInstance = CreateNamedPipe(PIPE_NAME, PIPE_ACCESS_OUTBOUND | FILE_FLAG_OVERLAPPED, PIPE_WAIT |
-			PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, 1, sizeof(TCHAR), TAM * sizeof(TCHAR), 1000, NULL);
+			PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, N, TAM * sizeof(TCHAR), TAM * sizeof(TCHAR), 1000, NULL);
 
 		if (hPipes[i].hInstance == INVALID_HANDLE_VALUE) {
 			_tprintf(TEXT("[ERRO] Criar Named Pipe! (CreateNamedPipe)\n"));
@@ -78,7 +78,7 @@ int _tmain(int argc, LPTSTR argv[]) {
 
 		_tprintf(TEXT("[ESCRITOR] Esperar ligação overlapped de um leitor...(ConnectNamedPipe)\n"));
 
-		if (ConnectNamedPipe(&hPipes[i].hInstance, &hPipes[i].overlap) != 0) {
+		if (ConnectNamedPipe(hPipes[i].hInstance, &hPipes[i].overlap) != 0) {
 			_tprintf(TEXT("[ERRO] Ligação ao leitor! (ConnectNamedPipe\n"));
 			break;
 		}
@@ -104,16 +104,17 @@ int _tmain(int argc, LPTSTR argv[]) {
 
 		if (i >= 0 && i < N)
 		{
-			if (!GetOverlappedResult(&hPipes[i].hInstance, &hPipes[i].overlap, &n, FALSE)) {
+			if (!GetOverlappedResult(hPipes[i].hInstance, &hPipes[i].overlap, &n, FALSE)) {
 				_tprintf(TEXT("[ERRO] obter resultados de %d \n"), i);
 				continue;
 			}
+
+			ResetEvent(hEvent[i]);
+			WaitForSingleObject(hMutex, INFINITE);
+			hPipes[i].activo = TRUE;
+			ReleaseMutex(hMutex);
+			numClientes++;
 		}
-		ResetEvent(hEvent[i]);
-		WaitForSingleObject(hMutex, INFINITE);
-		hPipes[i].activo = TRUE;
-		ReleaseMutex(hMutex);
-		numClientes++;
 
 	}
 
