@@ -40,7 +40,7 @@ int i, end = 0, numClientes = 0;
 
 HANDLE hT;
 DWORD x;
-OVERLAPPED a[N];
+//OVERLAPPED a[N];
 
 int _tmain(int argc, LPTSTR argv[]) {
 
